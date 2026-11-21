@@ -18,5 +18,15 @@
       <summary>Order inside the section</summary>
       <description>0 is the first item in the section, higher values move the indicator further right.</description>
     </key>
+    <key name="notify-thresholds" type="ai">
+      <default>[20, 15, 10, 5]</default>
+      <summary>Low battery notification thresholds</summary>
+      <description>Percentages that trigger a system notification when a device battery drops to or below them. An empty list turns the notifications off.</description>
+    </key>
+    <key name="hidden-devices" type="as">
+      <default>[]</default>
+      <summary>Devices hidden from the panel</summary>
+      <description>Bluetooth addresses of devices that are not shown in the panel and do not send low battery notifications.</description>
+    </key>
   </schema>
 </schemalist>

@@ -15,16 +15,16 @@ jobs:
 
       # `gnome-extensions pack` segfaults on the runner (no session bus), so the
       # archive is assembled with plain zip from a fixed file list instead.
+      - name: Install gettext
+        run: sudo apt-get update && sudo apt-get install -y gettext
+
       - name: Build extension
         run: |
-          ZIP="bluetooth-battery@gra4ev.shell-extension.zip"
-          rm -f "$ZIP"
-          zip -r "$ZIP" \
-            metadata.json extension.js bluezClient.js indicator.js prefs.js stylesheet.css schemas
-          unzip -l "$ZIP"
+          make zip
+          unzip -l bluetooth-battery@gra4ev.shell-extension.zip
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           files: bluetooth-battery@gra4ev.shell-extension.zip
-          generate_release_notes: true
+          body_path: CHANGELOG.md

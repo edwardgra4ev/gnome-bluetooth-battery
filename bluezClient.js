@@ -8,6 +8,55 @@ const BATTERY_IFACE = 'org.bluez.Battery1';
 
 const DEBOUNCE_MS = 100;
 
+// deepUnpack() leaves nested variants untouched, recursiveUnpack() turns
+// a{sv} values into plain JS numbers/booleans/strings.
+function queryObjects(cancellable, callback) {
+    Gio.DBus.system.call(
+        BLUEZ_NAME,
+        '/',
+        OBJECT_MANAGER_IFACE,
+        'GetManagedObjects',
+        null,
+        new GLib.VariantType('(a{oa{sa{sv}}})'),
+        Gio.DBusCallFlags.NONE,
+        -1,
+        cancellable,
+        (bus, res) => {
+            let objects;
+            try {
+                [objects] = bus.call_finish(res).recursiveUnpack();
+            } catch (e) {
+                if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
+                    console.warn(`[bluetooth-battery] GetManagedObjects failed: ${e.message}`);
+                return;
+            }
+            callback(objects ?? {});
+        });
+}
+
+// Paired and connected devices, connected or not. Used by the preferences
+// window, which runs outside the shell and needs its own D-Bus query.
+export function getPairedDevices(callback) {
+    queryObjects(null, objects => {
+        const devices = [];
+
+        for (const interfaces of Object.values(objects)) {
+            const device = interfaces[DEVICE_IFACE];
+            if (!device?.Address || !(device.Paired || device.Connected))
+                continue;
+
+            devices.push({
+                address: device.Address,
+                name: device.Alias || device.Name || device.Address,
+                connected: Boolean(device.Connected),
+            });
+        }
+
+        devices.sort((a, b) => a.name.localeCompare(b.name));
+        callback(devices);
+    });
+}
+
 export class BluezClient {
     constructor(onChanged) {
         this._onChanged = onChanged;
@@ -60,29 +109,7 @@ export class BluezClient {
     }
 
     _reload() {
-        Gio.DBus.system.call(
-            BLUEZ_NAME,
-            '/',
-            OBJECT_MANAGER_IFACE,
-            'GetManagedObjects',
-            null,
-            new GLib.VariantType('(a{oa{sa{sv}}})'),
-            Gio.DBusCallFlags.NONE,
-            -1,
-            this._cancellable,
-            (bus, res) => {
-                let objects;
-                try {
-                    // deepUnpack() leaves nested variants untouched, recursiveUnpack()
-                    // turns a{sv} values into plain JS numbers/booleans/strings.
-                    [objects] = bus.call_finish(res).recursiveUnpack();
-                } catch (e) {
-                    if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
-                        console.warn(`[bluetooth-battery] GetManagedObjects failed: ${e.message}`);
-                    return;
-                }
-                this._apply(objects ?? {});
-            });
+        queryObjects(this._cancellable, objects => this._apply(objects));
     }
 
     _apply(objects) {
@@ -101,6 +128,7 @@ export class BluezClient {
 
             devices.push({
                 path,
+                address: device.Address ?? '',
                 name: device.Alias || device.Name || path,
                 icon: device.Icon ?? '',
                 deviceClass: Number(device.Class ?? 0),

@@ -19,7 +19,10 @@ shortcut to the Bluetooth settings.
 
 - One chip per connected device in the panel, device-type icon + percentage
 - Lowest battery first; percentage turns red at 20% and below
-- Popup menu with device names and a **Bluetooth Settings** entry
+- Choose which devices appear in the panel: hidden ones are remembered by MAC and ignored after reconnecting
+- System notification with the device icon when a device drops to 20, 15, 10 or 5% (thresholds are editable); click opens Bluetooth settings
+- English and Russian UI (gettext, `po/ru.po`)
+- Popup menu with device names and a **Settings** entry that opens the extension preferences
 - Configurable panel section (left / center / right) and order inside it
 - Live updates from BlueZ D-Bus signals — no polling, no background timers
 - No shell-outs: talks to BlueZ directly over `org.freedesktop.DBus.ObjectManager`
@@ -58,6 +61,8 @@ Then restart the session the same way as above.
 | --- | --- |
 | **Section** | Which part of the top bar holds the indicator: right, center or left |
 | **Order** | Position inside that section, `0` = first item. Higher values move it right |
+| **Thresholds (%)** | Battery levels that trigger a notification, comma separated (`20, 15, 10, 5` by default). Empty field turns the notifications off |
+| **Devices** | Switch off a device to hide it from the panel and mute its low battery notifications. Stored by MAC address, so it survives reconnects |
 
 GNOME Shell has no built-in drag-and-drop for panel items, so the position is set here.
 Both settings apply immediately, without restarting the extension.
@@ -91,7 +96,7 @@ journalctl -f -o cat /usr/bin/gnome-shell
 ## Build
 
 ```bash
-make zip       # rebuild bluetooth-battery@gra4ev.shell-extension.zip
+make zip       # compile translations, rebuild bluetooth-battery@gra4ev.shell-extension.zip
 make install   # pack, install and enable
 make clean
 ```
@@ -99,14 +104,18 @@ make clean
 `zip` is used instead of `gnome-extensions pack` so that local and CI builds are identical
 and no GNOME Shell session is required (the CLI segfaults outside a session bus).
 
+Translations live in `po/*.po` and are compiled to `locale/<lang>/LC_MESSAGES/bluetooth-battery.mo`
+by `msgfmt` (package **gettext**) during `make zip`.
+
 ## How it works
 
 | File | Role |
 | --- | --- |
-| `bluezClient.js` | Calls `GetManagedObjects` on `org.bluez`, keeps the list of devices that are `Connected` and expose `Battery1.Percentage`; listens to `InterfacesAdded`, `InterfacesRemoved` and `PropertiesChanged` (debounced by 100 ms) |
+| `bluezClient.js` | Calls `GetManagedObjects` on `org.bluez`, keeps the list of devices that are `Connected` and expose `Battery1.Percentage`; listens to `InterfacesAdded`, `InterfacesRemoved` and `PropertiesChanged` (debounced by 100 ms). Also exports `getPairedDevices()` for the preferences window |
 | `indicator.js` | One `PanelMenu.Button` with a chip per device; resolves the icon from `Device1.Icon`, then name heuristics, then the Bluetooth major device class, with `bluetooth-active-symbolic` as `fallback_icon_name` |
-| `extension.js` | Wires client + indicator, applies panel position from GSettings |
-| `prefs.js` | Preferences window (section + order) |
+| `notifier.js` | Sends one system notification per crossed battery threshold (`20, 15, 10, 5` by default, from GSettings); re-arms a threshold when the device charges above it and forgets a device when it disconnects |
+| `extension.js` | Wires client + indicator + notifier, filters devices by `Device1.Address` against `hidden-devices`, applies panel position from GSettings |
+| `prefs.js` | Preferences window (section, order, notification thresholds, device visibility) |
 
 ## Limitations
 

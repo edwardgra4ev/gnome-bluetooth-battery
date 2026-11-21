@@ -5,7 +5,6 @@ import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const LOW_BATTERY = 20;
@@ -51,7 +50,7 @@ const NAME_HINTS = [
 
 // Returns the best guess for a device icon name. St.Icon falls back to
 // `fallback_icon_name` when the guessed name is missing from the theme.
-function resolveIcon(device) {
+export function resolveIcon(device) {
     const candidates = [];
 
     const mapped = ICON_MAP[device.icon];
@@ -87,8 +86,10 @@ function percentLabel(device, styleClass) {
 
 export const BluetoothBatteryIndicator = GObject.registerClass(
 class BluetoothBatteryIndicator extends PanelMenu.Button {
-    _init() {
+    _init(onOpenPreferences) {
         super._init(0.0, 'BluetoothBatteryIndicator', false);
+
+        this._onOpenPreferences = onOpenPreferences;
 
         this._box = new St.BoxLayout({style_class: 'btb-panel-box'});
         this.add_child(this._box);
@@ -143,8 +144,8 @@ class BluetoothBatteryIndicator extends PanelMenu.Button {
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-        const settings = new PopupMenu.PopupMenuItem(_('Bluetooth Settings'));
-        settings.connect('activate', () => Util.spawn(['gnome-control-center', 'bluetooth']));
+        const settings = new PopupMenu.PopupMenuItem(_('Settings'));
+        settings.connect('activate', () => this._onOpenPreferences());
         this.menu.addMenuItem(settings);
     }
 

@@ -1,16 +1,25 @@
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import Gio from 'gi://Gio';
 
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import * as Config from 'resource:///org/gnome/shell/misc/config.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
+import * as Util from 'resource:///org/gnome/shell/misc/util.js';
 
 import {BluezClient} from './bluezClient.js';
-import {BluetoothBatteryIndicator} from './indicator.js';
+import {BluetoothBatteryIndicator, resolveIcon} from './indicator.js';
+import {BatteryNotifier} from './notifier.js';
+
+// MessageTray switches from positional arguments (45) to a params object (46+).
+const SHELL_MAJOR = Number.parseInt(Config.PACKAGE_VERSION.split('.')[0], 10);
 
 export default class BluetoothBatteryExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
         this._devices = [];
 
-        this._indicator = new BluetoothBatteryIndicator();
+        this._indicator = new BluetoothBatteryIndicator(() => this.openPreferences());
         Main.panel.addToStatusArea(
             this.uuid,
             this._indicator,
@@ -20,12 +29,12 @@ export default class BluetoothBatteryExtension extends Extension {
         this._settingsIds = [
             this._settings.connect('changed::panel-box', () => this._placeIndicator()),
             this._settings.connect('changed::panel-position', () => this._placeIndicator()),
+            this._settings.connect('changed::hidden-devices', () => this._applyDevices()),
         ];
 
-        this._client = new BluezClient(devices => {
-            this._devices = devices;
-            this._indicator?.update(devices);
-        });
+        this._notifier = new BatteryNotifier(this._settings, device => this._notifyLowBattery(device));
+
+        this._client = new BluezClient(devices => this._applyDevices(devices));
         this._client.start();
     }
 
@@ -34,6 +43,12 @@ export default class BluetoothBatteryExtension extends Extension {
             this._settings.disconnect(id);
         this._settingsIds = [];
 
+        this._notifier?.destroy();
+        this._notifier = null;
+
+        this._notificationSource?.destroy();
+        this._notificationSource = null;
+
         this._client?.destroy();
         this._client = null;
 
@@ -41,6 +56,47 @@ export default class BluetoothBatteryExtension extends Extension {
         this._indicator = null;
 
         this._settings = null;
+    }
+
+    // Hidden devices disappear from the panel and stop sending notifications,
+    // but stay in GSettings so the choice survives reconnects and restarts.
+    _applyDevices(devices = this._devices) {
+        this._devices = devices;
+
+        const hidden = new Set(this._settings.get_strv('hidden-devices')
+            .map(address => address.toUpperCase()));
+        const visible = devices.filter(d => !hidden.has(d.address.toUpperCase()));
+
+        this._indicator?.update(visible);
+        this._notifier?.update(visible);
+    }
+
+    _notifyLowBattery(device) {
+        const title = `${device.name}: ${device.percent}%`;
+        const body = _('Battery low, connect a charger');
+
+        if (SHELL_MAJOR < 46) {
+            Main.notify(title, body);
+            return;
+        }
+
+        if (!this._notificationSource) {
+            this._notificationSource = new MessageTray.Source({
+                title: 'Bluetooth Battery',
+                iconName: 'bluetooth-active-symbolic',
+            });
+            Main.messageTray.add(this._notificationSource);
+        }
+
+        const notification = new MessageTray.Notification({
+            source: this._notificationSource,
+            title,
+            body,
+            gicon: new Gio.ThemedIcon({name: resolveIcon(device)}),
+        });
+        notification.connect('activated',
+            () => Util.spawn(['gnome-control-center', 'bluetooth']));
+        this._notificationSource.addNotification(notification);
     }
 
     // Same effect as addToStatusArea(position, box) but without re-creating the
