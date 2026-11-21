@@ -1,11 +1,14 @@
 UUID := bluetooth-battery@gra4ev
 ZIP := $(UUID).shell-extension.zip
-EXTRA_SOURCES := --extra-source=bluezClient.js --extra-source=indicator.js
+# plain zip instead of `gnome-extensions pack`: same file list as CI, no
+# gnome-shell dependency, and it does not segfault outside a session.
+FILES := metadata.json extension.js bluezClient.js indicator.js prefs.js stylesheet.css schemas
 
 .PHONY: zip install clean
 
 zip:
-	gnome-extensions pack . $(EXTRA_SOURCES) --force --out-dir=.
+	rm -f $(ZIP)
+	zip -qrX $(ZIP) $(FILES)
 
 install: zip
 	gnome-extensions install --force $(ZIP)

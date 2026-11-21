@@ -97,8 +97,8 @@ make install   # собрать, установить и включить
 make clean
 ```
 
-`gnome-extensions pack` не подхватывает вспомогательные модули сам, поэтому в `Makefile`
-передаются `--extra-source=bluezClient.js --extra-source=indicator.js`.
+Используется `zip`, а не `gnome-extensions pack`: локальная сборка и CI дают одинаковый
+архив и не требуют сессии GNOME Shell (CLI падает с segfault вне шины сессии).
 
 ## Как устроено
 

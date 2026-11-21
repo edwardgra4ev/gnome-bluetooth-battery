@@ -96,8 +96,8 @@ make install   # pack, install and enable
 make clean
 ```
 
-`gnome-extensions pack` does not pick up helper modules automatically, so `Makefile` passes
-`--extra-source=bluezClient.js --extra-source=indicator.js`.
+`zip` is used instead of `gnome-extensions pack` so that local and CI builds are identical
+and no GNOME Shell session is required (the CLI segfaults outside a session bus).
 
 ## How it works
 
