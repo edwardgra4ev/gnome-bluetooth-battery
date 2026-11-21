@@ -94,8 +94,11 @@ export default class BluetoothBatteryExtension extends Extension {
             body,
             gicon: new Gio.ThemedIcon({name: resolveIcon(device)}),
         });
-        notification.connect('activated',
-            () => Util.spawn(['gnome-control-center', 'bluetooth']));
+        // connectObject ties the handler to the source's lifetime, so it is
+        // dropped when the source is destroyed in disable().
+        notification.connectObject('activated',
+            () => Util.spawn(['gnome-control-center', 'bluetooth']),
+            this._notificationSource);
         this._notificationSource.addNotification(notification);
     }
 

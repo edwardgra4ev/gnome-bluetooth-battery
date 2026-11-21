@@ -4,6 +4,14 @@ All notable changes to this extension are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-11-21
+
+### Fixed
+
+- Notification activation handler is now tied to the notification source lifetime with
+  `connectObject()`, so it is released when the extension is disabled. Removes the
+  `EGO-L-003` warning from the extensions.gnome.org static review (`shexli`).
+
 ## [1.1.0] - 2026-11-21
 
 ### Added
