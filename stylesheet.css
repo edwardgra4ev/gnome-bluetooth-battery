@@ -1,0 +1,28 @@
+.btb-panel-box {
+    spacing: 0;
+}
+
+.btb-chip {
+    spacing: 4px;
+    margin: 0 6px;
+}
+
+.btb-percent {
+    font-size: 0.9em;
+}
+
+.btb-low {
+    color: #ff6b6b;
+}
+
+.btb-menu-row {
+    spacing: 8px;
+}
+
+.btb-menu-percent {
+    font-feature-settings: "tnum";
+}
+
+.btb-empty {
+    color: #9a9a9a;
+}

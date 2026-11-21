@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.bluetooth-battery"
+          path="/org/gnome/shell/extensions/bluetooth-battery/">
+    <key name="panel-box" type="s">
+      <choices>
+        <choice value="left"/>
+        <choice value="center"/>
+        <choice value="right"/>
+      </choices>
+      <default>'right'</default>
+      <summary>Panel section</summary>
+      <description>Which part of the top bar holds the indicator: left, center or right.</description>
+    </key>
+    <key name="panel-position" type="i">
+      <default>0</default>
+      <range min="0" max="50"/>
+      <summary>Order inside the section</summary>
+      <description>0 is the first item in the section, higher values move the indicator further right.</description>
+    </key>
+  </schema>
+</schemalist>

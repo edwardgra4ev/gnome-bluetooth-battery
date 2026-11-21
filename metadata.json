@@ -1,0 +1,8 @@
+{
+  "uuid": "bluetooth-battery@gra4ev",
+  "name": "Bluetooth Battery",
+  "description": "Shows battery level of every connected Bluetooth device in the top panel.",
+  "shell-version": ["45", "46", "47", "48", "49"],
+  "settings-schema": "org.gnome.shell.extensions.bluetooth-battery",
+  "url": "https://github.com/edwardgra4ev/gnome-bluetooth-battery"
+}
