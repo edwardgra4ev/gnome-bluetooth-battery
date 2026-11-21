@@ -36,8 +36,8 @@
 
 ### Из файла (приложение Extensions)
 
-1. Скачай [`bluetooth-battery@gra4ev.shell-extension.zip`](bluetooth-battery@gra4ev.shell-extension.zip)
-   из репозитория (или собери: `make zip`).
+1. Скачай `bluetooth-battery@gra4ev.shell-extension.zip`
+   со [страницы последнего релиза](https://github.com/edwardgra4ev/gnome-bluetooth-battery/releases/latest).
 2. Открой **Extensions** (или Extension Manager) → `⋮` → **Install from file…** → выбери zip.
 3. Выйди из сессии и войди снова (Wayland) либо нажми `Alt+F2` и введи `r` (X11).
 

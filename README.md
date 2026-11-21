@@ -36,8 +36,8 @@ shortcut to the Bluetooth settings.
 
 ### From a file (Extensions app)
 
-1. Download [`bluetooth-battery@gra4ev.shell-extension.zip`](bluetooth-battery@gra4ev.shell-extension.zip)
-   from this repository (or build it with `make zip`).
+1. Download `bluetooth-battery@gra4ev.shell-extension.zip`
+   from the [latest release](https://github.com/edwardgra4ev/gnome-bluetooth-battery/releases/latest).
 2. Open **Extensions** (or Extension Manager) → `⋮` → **Install from file…** → pick the zip.
 3. Log out and back in (Wayland) or press `Alt+F2`, type `r` (X11).
 

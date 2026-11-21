@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GNOME Shell tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnome-shell
+
+      - name: Build extension
+        run: |
+          gnome-extensions pack . \
+            --extra-source=bluezClient.js \
+            --extra-source=indicator.js \
+            --force --out-dir=build
+          mv build/bluetooth-battery@gra4ev.shell-extension.zip .
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bluetooth-battery@gra4ev.shell-extension.zip
+          generate_release_notes: true
