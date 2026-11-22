@@ -4,9 +4,7 @@
 
 Shows the battery level of **every connected Bluetooth device** right in the top panel.
 
-```
-🎧 85%   ⌨ 91%   🖱 40%
-```
+![Three chips in the top panel — mouse 8%, headset 85%, keyboard 91%. Clicking one opens the device menu, then a low battery notification appears, then the preferences window where a switch hides the device from the panel](docs/preview/how-it-works.gif)
 
 Each connected device gets its own chip: a device-type icon (headset, mouse, keyboard, gamepad…)
 plus its battery percentage. Chips are sorted from the lowest battery to the highest, so the
@@ -125,6 +123,11 @@ by `msgfmt` (package **gettext**) during `make zip`.
   present themselves as plain HID devices with no battery telemetry. Logitech HID++ devices
   do expose `hidpp_battery_0` through the kernel and UPower — a possible future source.
 - Some devices report in coarse steps (100/70/50/30/10%), that is what BlueZ gives us.
+
+## Preview
+
+The animation above is a mock-up rendered from the extension's own values and GNOME's Adwaita
+assets, not a screen recording.
 
 ## License
 
